@@ -2,11 +2,11 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Edit Post</title>
+    <title>Post List</title>
 </head>
 <body>
     <% String username = request.getParameter("username"); %>
-    <div><h1>Edit Post</h1></div>
+    <div><h1>Post List</h1></div>
     <form>
         <button type="submit">New Post</button>
     </form>
