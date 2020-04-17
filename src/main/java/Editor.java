@@ -87,7 +87,7 @@ public class Editor extends HttpServlet {
                 handleList(request, response);
                 break;              
             case "open":
-                request.getRequestDispatcher("/edit.jsp").forward(request, response);
+                handleOpen(request, response);
                 break;
             default:
                 request.getRequestDispatcher("/error.jsp").forward(request, response);
@@ -136,6 +136,56 @@ public class Editor extends HttpServlet {
         request.setAttribute("posts", posts);
         request.getRequestDispatcher("/list.jsp").forward(request, response);
 
+    }
+
+    public void handleOpen(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException
+    {
+        String username = request.getParameter("username");
+        String postid = request.getParameter("postid");
+        String title = request.getParameter("title");
+        String body = request.getParameter("body");
+
+        if (username == null || postid == null) {
+            request.getRequestDispatcher("/error.jsp").forward(request, response);
+        }
+
+        if (Integer.parseInt(postid) > 0) {
+            // retrieve post from database if title or body is missing
+            if (title == null || body == null) {
+                PreparedStatement ps = null;
+                ResultSet rs = null;
+
+                try {
+                    ps = connection.prepareStatement("SELECT title, body FROM Posts WHERE username = ? AND postid = ?");
+                    rs = ps.executeQuery();
+
+                    if (rs.next()) {
+                        title = rs.getString("title");
+                        body = rs.getString("body");
+                    } else {
+                        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    }
+                } catch (SQLException e) {
+                    System.err.println("SQLException: " + e.getMessage()); 
+                } finally {
+                    try { rs.close(); } catch (Exception e) { /* ignore */ }
+                    try { ps.close(); } catch (Exception e) { /* ignore */ }
+                }
+            }
+        } else {
+            if (title == null) {
+                title = "";
+            }
+
+            if (body == null) {
+                body = "";
+            } 
+        } 
+   
+        request.setAttribute("title", title);
+        request.setAttribute("body", body); 
+        request.getRequestDispatcher("/edit.jsp").forward(request, response);
     }
     
     /**

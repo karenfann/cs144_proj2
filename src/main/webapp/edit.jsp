@@ -5,6 +5,7 @@
     <title>Edit Post</title>
 </head>
 <body>
+    <%  String title = request.getAttribute("title").toString(); %>
     <div><h1>Edit Post</h1></div>
     <form>
         <div>
@@ -15,11 +16,11 @@
         </div>
         <div>
             <label for="title">Title</label>
-            <input type="text" id="title">
+            <input type="text" id="title" value="<%= title %>">
         </div>
         <div>
             <label for="body">Body</label>
-            <textarea style="height: 20rem;" id="body"></textarea>
+            <textarea style="height: 20rem;" id="body"><%= request.getAttribute("body") %></textarea>
         </div>
     </form>
 </body>
