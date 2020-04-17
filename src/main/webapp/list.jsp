@@ -5,6 +5,7 @@
     <title>Edit Post</title>
 </head>
 <body>
+    <% String username = request.getParameter("username"); %>
     <div><h1>Edit Post</h1></div>
     <form>
         <button type="submit">New Post</button>
@@ -21,6 +22,14 @@
                 <td><%= p.title %></td>
                 <td><%= p.created %></td>
                 <td><%= p.modified %></td>
+                <td>
+                    <form>
+                        <input type="hidden" name="postid" value="<%= p.postid %>">
+                        <input type="hidden" name="username" value="<%= username %>">
+                        <button type="submit" name="action" value="open">Open</button>
+                        <button type="submit" name="action" value="preview">Preview</button>
+                    </form>
+                </td>
             </tr>
         <% } %>
     </table>
