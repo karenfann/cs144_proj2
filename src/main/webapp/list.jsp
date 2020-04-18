@@ -7,8 +7,10 @@
 <body>
     <% String username = request.getParameter("username"); %>
     <div><h1>Post List</h1></div>
-    <form>
-        <button type="submit">New Post</button>
+    <form action="post">
+        <input type="hidden" name="username" value="<%= username %>">
+        <input type="hidden" name="postid" value="0">
+        <button type="submit" name="action" value="open">New Post</button>
     </form>
     <br>
     <table>
