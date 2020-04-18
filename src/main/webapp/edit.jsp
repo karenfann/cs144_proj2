@@ -6,10 +6,10 @@
 </head>
 <body>
     <%  String title = request.getAttribute("title").toString(); 
-        String username = request.getParameter("username").toString(); 
-        String postid = request.getParameter("postid").toString(); %>
+        String username = request.getParameter("username"); 
+        String postid = request.getParameter("postid"); %>
     <div><h1>Edit Post</h1></div>
-    <form action="/editor/post" method="post">
+    <form action="post" method="post">
         <input type="hidden" name="username" value="<%= username %>">
         <input type="hidden" name="postid" value="<%= postid %>">
         <div>

@@ -40,7 +40,7 @@ public class Editor extends HttpServlet {
             Class.forName("com.mysql.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             System.out.println(e);
-            return;
+            throw new ServletException("Cannot load driver");
         }
 
         // establish a connection
@@ -56,6 +56,7 @@ public class Editor extends HttpServlet {
                 System.out.println("---");
                 ex = ex.getNextException();
             }
+            throw new ServletException("Cannot establish connection");
         }
     }
     
@@ -80,6 +81,7 @@ public class Editor extends HttpServlet {
         
         if (action == null) {
             request.getRequestDispatcher("/error.jsp").forward(request, response);
+            return;
         }
         
        switch(action) {
@@ -108,6 +110,7 @@ public class Editor extends HttpServlet {
         
         if (action == null) {
             request.getRequestDispatcher("/error.jsp").forward(request, response);
+            return;
         }
  
         switch(action) {
@@ -122,7 +125,6 @@ public class Editor extends HttpServlet {
                 request.getRequestDispatcher("/error.jsp").forward(request, response);
         }
 
-        request.getRequestDispatcher("/edit.jsp").forward(request, response);
     }
 
     /**
@@ -136,6 +138,7 @@ public class Editor extends HttpServlet {
         // check for required parameters
         if (username == null) {
             request.getRequestDispatcher("/error.jsp").forward(request, response);
+            return;
         }
 
         PreparedStatement ps = null;
@@ -163,7 +166,8 @@ public class Editor extends HttpServlet {
             }
             
         } catch (SQLException e) {
-            System.err.println("SQLException: " + e.getMessage());
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
         } finally {
             try { rs.close(); } catch (Exception e) { /* ignore */ }
             try { ps.close(); } catch (Exception e) { /* ignore */ }
@@ -188,6 +192,7 @@ public class Editor extends HttpServlet {
         // check for required parameters
         if (username == null || postid == null) {
             request.getRequestDispatcher("/error.jsp").forward(request, response);
+            return;
         }
 
         if (Integer.parseInt(postid) > 0) {
@@ -208,9 +213,11 @@ public class Editor extends HttpServlet {
                     } else {
                         // post does not exist
                         response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                        return;
                     }
                 } catch (SQLException e) {
-                    System.err.println("SQLException: " + e.getMessage()); 
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+                    return;
                 } finally {
                     try { rs.close(); } catch (Exception e) { /* ignore */ }
                     try { ps.close(); } catch (Exception e) { /* ignore */ }
@@ -245,6 +252,7 @@ public class Editor extends HttpServlet {
         // check for required parameters
         if (username == null || postid == null || title == null || body == null) {
             request.getRequestDispatcher("/error.jsp").forward(request, response);
+            return;
         }
 
         PreparedStatement ps = null;
@@ -253,11 +261,12 @@ public class Editor extends HttpServlet {
         try {
             if (Integer.parseInt(postid) > 0) {
                 // update post matching (username, postid)
-                ps = connection.prepareStatement("UPDATE Posts SET title = ?, body = ?, modified = CURRENT_TIMESTAMP WHERE username = ? AND postid = ?");
+                ps = connection.prepareStatement("UPDATE Posts SET title = ?, body = ?, modified = ? WHERE username = ? AND postid = ?");
                 ps.setString(1, title);
                 ps.setString(2, body);
-                ps.setString(3, username);
-                ps.setInt(4, Integer.parseInt(postid));
+                ps.setTimestamp(3, getCurrentTimestamp());
+                ps.setString(4, username);
+                ps.setInt(5, Integer.parseInt(postid));
 
                 // note: if there is no post matching (username, postid)
                 // this update will not affect the database
@@ -280,21 +289,29 @@ public class Editor extends HttpServlet {
                 }
 
                 // insert new post into database
-                ps = connection.prepareStatement("INSERT INTO Posts VALUES(?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
+                ps = connection.prepareStatement("INSERT INTO Posts VALUES(?, ?, ?, ?, ?, ?)");
                 ps.setString(1, username);
-                ps.setInt(2, nextid);
+                ps.setInt(2, 1);
                 ps.setString(3, title);
                 ps.setString(4, body);
+                ps.setTimestamp(5, getCurrentTimestamp());
+                ps.setTimestamp(6, getCurrentTimestamp());
 
                 int n = ps.executeUpdate();
             }
         } catch (SQLException e) {
-            System.err.println("SQLException: " + e.getMessage()); 
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            return;
         } finally {
             try { rs.close(); } catch (Exception e) { /* ignore */ }
             try { ps.close(); } catch (Exception e) { /* ignore */ }
         }
 
-        handleList(request, response);
+        response.sendRedirect(request.getContextPath() + "/post?action=list&username=" + username);
+    }
+
+    public Timestamp getCurrentTimestamp() {
+        Date today = new Date();
+        return new Timestamp(today.getTime());
     }
 }
