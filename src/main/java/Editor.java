@@ -112,11 +112,13 @@ public class Editor extends HttpServlet {
             request.getRequestDispatcher("/error.jsp").forward(request, response);
             return;
         }
- 
+
         switch(action) {
             case "list":
+                handleList(request, response);
+                break;
             case "open":
-                doGet(request, response);
+                handleOpen(request, response);
                 break;
             case "save":
                 handleSave(request, response);
@@ -275,7 +277,7 @@ public class Editor extends HttpServlet {
                 int nextid;
                 
                 // query for next highest postid
-                ps = connection.prepareStatement("SELECT * FROM (SELECT max(postid)+1 AS nextid FROM Posts WHERE username = ?) WHERE nextid IS NOT NULL");
+                ps = connection.prepareStatement("SELECT * FROM (SELECT max(postid)+1 AS nextid FROM Posts WHERE username = ?) AS tmp WHERE nextid IS NOT NULL");
                 ps.setString(1, username);
                 
                 rs = ps.executeQuery();
@@ -288,10 +290,12 @@ public class Editor extends HttpServlet {
                     nextid = 1;
                 }
 
+                System.out.println(nextid);
+
                 // insert new post into database
                 ps = connection.prepareStatement("INSERT INTO Posts VALUES(?, ?, ?, ?, ?, ?)");
                 ps.setString(1, username);
-                ps.setInt(2, 1);
+                ps.setInt(2, nextid);
                 ps.setString(3, title);
                 ps.setString(4, body);
                 ps.setTimestamp(5, getCurrentTimestamp());
