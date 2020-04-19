@@ -91,6 +91,9 @@ public class Editor extends HttpServlet {
             case "open":
                 handleOpen(request, response);
                 break;
+            case "preview":
+                handlePreview(request, response);
+                break;
             default:
                 request.getRequestDispatcher("/error.jsp").forward(request, response);
         }
@@ -122,6 +125,12 @@ public class Editor extends HttpServlet {
                 break;
             case "save":
                 handleSave(request, response);
+                break;
+            case "preview":
+                handlePreview(request, response);
+                break;
+            case "delete":
+                handleDelete(request, response);
                 break;
             default:
                 request.getRequestDispatcher("/error.jsp").forward(request, response);
@@ -317,5 +326,58 @@ public class Editor extends HttpServlet {
     public Timestamp getCurrentTimestamp() {
         Date today = new Date();
         return new Timestamp(today.getTime());
+    }
+
+    /**
+     * Handles request of preview action type
+    **/
+    public void handlePreview(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException
+    {
+        String username = request.getParameter("username");
+        String postid = request.getParameter("postid");
+        String title = request.getParameter("title");
+        String body = request.getParameter("body");
+
+        if (username == null || postid == null || title == null || body == null) {
+            request.getRequestDispatcher("/error.jsp").forward(request, response);
+            return;
+        }
+
+        // Parse markdown body to HTML
+        Parser parser = Parser.builder().build();
+        HtmlRenderer renderer = HtmlRenderer.builder().build();
+        String body_html = renderer.render(parser.parse(body));
+
+        request.setAttribute("body_html", body_html);
+        request.getRequestDispatcher("/preview.jsp").forward(request, response);
+    }
+
+    public void handleDelete(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException
+    {
+        String username = request.getParameter("username");
+        String postid = request.getParameter("postid");
+
+        if (username == null || postid == null) {
+            request.getRequestDispatcher("/error.jsp").forward(request, response);
+            return;
+        }
+
+        // delete the post from database
+        PreparedStatement ps = null;
+        try {
+            String query = "DELETE FROM Posts WHERE postid = ?";
+            ps = connection.prepareStatement(query);
+            ps.setString(1, postid);
+            ps.execute();
+        } catch (SQLException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            return;
+        } finally {
+            try { ps.close(); } catch (Exception e) { /* ignore */ }
+        }
+
+        response.sendRedirect(request.getContextPath() + "/post?action=list&username=" + username);
     }
 }
