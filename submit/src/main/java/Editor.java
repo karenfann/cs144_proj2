@@ -215,6 +215,9 @@ public class Editor extends HttpServlet {
                 try {
                     // query for post matching (username, postid)
                     ps = connection.prepareStatement("SELECT title, body FROM Posts WHERE username = ? AND postid = ?");
+                    ps.setString(1, username);
+                    ps.setString(2, postid);
+                    
                     rs = ps.executeQuery();
 
                     if (rs.next()) {

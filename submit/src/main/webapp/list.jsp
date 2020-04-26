@@ -25,7 +25,7 @@
                 <td><%= p.created %></td>
                 <td><%= p.modified %></td>
                 <td>
-                    <form>
+                    <form action="post">
                         <input type="hidden" name="username" value="<%= username %>">
                         <input type="hidden" name="postid" value="<%= p.postid %>">
                         <input type="hidden" name="title" value="<%= p.title %>">
