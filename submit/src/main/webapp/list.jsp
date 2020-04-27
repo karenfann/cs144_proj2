@@ -25,13 +25,13 @@
                 <td><%= p.created %></td>
                 <td><%= p.modified %></td>
                 <td>
-                    <form action="post">
+                    <form action="post" method="post">
                         <input type="hidden" name="username" value="<%= username %>">
                         <input type="hidden" name="postid" value="<%= p.postid %>">
                         <input type="hidden" name="title" value="<%= p.title %>">
                         <input type="hidden" name="body" value="<%= p.body %>"> 
                         <button type="submit" name="action" value="open">Open</button>
-                        <button type="submit" name="action" value="preview">Preview</button>
+                        <button type="submit" name="action" value="delete">Delete</button>
                     </form>
                 </td>
             </tr>
